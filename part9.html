@@ -19,23 +19,27 @@ var game = new Phaser.Game(800, 600, Phaser.AUTO, '', { preload: preload, create
 function preload() {
 
     game.load.image('sky', 'assets/galaxy.png');
-    game.load.image('ground', 'assets/platform.png');
+    game.load.image('ground', 'assets/platforms.png');
     game.load.image('star', 'assets/diamond.png');
     game.load.spritesheet('dude', 'assets/dude.png', 32, 48);
     game.load.spritesheet('baddie', 'assets/baddie.png', 32, 32);
-    
+    game.load.spritesheet('spider', 'assets/spider.png', 32, 32);
+        
+   
 }
 
 var player;
 var platforms;
 var cursors;
+    
+    
 
 var stars;
 var score = 0;
 var scoreText;
 
 function create() {
-
+   
     //  We're going to be using physics, so enable the Arcade Physics system
     game.physics.startSystem(Phaser.Physics.ARCADE);
 
@@ -49,10 +53,10 @@ function create() {
     platforms.enableBody = true;
 
     // Here we create the ground.
-    var ground = platforms.create(0, game.world.height - 64, 'ground');
+    var ground = platforms.create(0, game.world.height - 63, 'ground');
 
     //  Scale it to fit the width of the game (the original sprite is 400x32 in size)
-    ground.scale.setTo(2, 2);
+    ground.scale.setTo(8.5, 2);
 
     //  This stops it from falling away when you jump on it
     ground.body.immovable = true;
@@ -74,12 +78,21 @@ function create() {
      // The player and its settings
     enemy = game.add.sprite(150, game.world.height - 150, 'baddie');
     
+    // the player and its settings
+    enemy2 = game.add.sprite(150, game.world.height - 150, 'spider');
+    
     game.physics.arcade.enable(enemy);
+     game.physics.arcade.enable(enemy2);
     
     //  Player physics properties. Give the little guy a slight bounce.
     enemy.body.bounce.y = 0.2;
     enemy.body.gravity.y = 300;
     enemy.body.collideWorldBounds = true;
+    
+    //  Player physics properties. Give the little guy a slight bounce.
+    enemy2.body.bounce.y = 0.2;
+    enemy2.body.gravity.y = 300;
+    enemy2.body.collideWorldBounds = true;
     
     //  Our two animations, walking left and right.
     enemy.animations.add('left', [0, 1], 10, true);
@@ -87,6 +100,13 @@ function create() {
    
      enemy.animations.play("right")
     enemy.body.velocity.x = 150
+    
+     //  Our two animations, walking left and right.
+    enemy2.animations.add('left', [0, 1], 10, true);
+    enemy2.animations.add('right', [2, 3], 10, true);
+   
+    enemy2.animations.play("right")
+    enemy2.body.velocity.x = 195
     
     //  We need to enable physics on the player
     game.physics.arcade.enable(player);
@@ -116,11 +136,11 @@ function create() {
         star.body.gravity.y = 300;
 
         //  This just gives each star a slightly random bounce value
-        star.body.bounce.y = 0.7 + Math.random() * 0.2;
+        star.body.bounce.y = 0.5 + Math.random() * 0.2;
     }
 
     //  The score
-    scoreText = game.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#0f0' });
+    scoreText = game.add.text(16, 16, 'score: 0', { fontSize: '33px', fill: '#DC1' });
 
     //  Our controls.
     cursors = game.input.keyboard.createCursorKeys();
@@ -132,6 +152,7 @@ function update() {
     //  Collide the player and enemy and the stars with the platforms
     var hitPlatform = game.physics.arcade.collide(player, platforms);
     game.physics.arcade.collide(enemy, platforms);
+    game.physics.arcade.collide(enemy2, platforms);
     game.physics.arcade.collide(stars, platforms);
 
     //  Checks to see if the player overlaps with any of the stars, if he does call the collectStar function
@@ -149,9 +170,22 @@ function update() {
     }
     else if (enemy.body.position.x < 0 + 40) {
         //go right
-        enemy.body.velocity.x = 150
+        enemy.body.velocity.x = 250
         enemy.animations.play('right')
     }
+    
+    //If statement - conditional
+    if (enemy2.body.position.x > game.width - 50) {
+        //Make pig move back to the left
+        enemy2.body.velocity.x = -195
+        enemy2.animations.play('left')
+    }
+    else if (enemy2.body.position.x < 0 + 50) {
+        //go right
+        enemy2.body.velocity.x = 195
+        enemy2.animations.play('right')
+    }
+    
     
     
     if (cursors.left.isDown)
@@ -198,6 +232,15 @@ function collectStar (player, star) {
     function playerVsEnemy(player,enemy) {
         if (player.body.position.y + 16 < enemy.body.position.y) {
             enemy.kill()
+        } else {
+        player.kill()
+        alert('Game over')
+    }
+    }
+    
+    function playerVsEnemy(player,enemy2) {
+        if (player.body.position.y + 16 < enemy2.body.position.y) {
+            enemy2.kill()
         } else {
         player.kill()
         alert('Game over')
